@@ -1,21 +1,25 @@
 from fastapi import FastAPI, HTTPException
 from app.schemas import WeatherFeatures
 from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles  # 新增导入
 import joblib
 import os
 import pandas as pd
 
 app = FastAPI(title="Rain Prediction API")
 
-# 【核心修改】重写 /docs 路由，强制使用国内的 CDN 加载界面
+# 挂载静态文件夹（让网页能加载 CSS/JS）
+# 注意：这里使用相对路径，确保在 Docker 容器里也能找到
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html() -> HTMLResponse:
     return get_swagger_ui_html(
         openapi_url=app.openapi_url,
         title=app.title + " - Swagger UI",
-        swagger_js_url="https://cdn.staticfile.org/swagger-ui/5.9.0/swagger-ui-bundle.js",
-        swagger_css_url="https://cdn.staticfile.org/swagger-ui/5.9.0/swagger-ui.css",
+        swagger_js_url="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.0/swagger-ui-bundle.js",
+        swagger_css_url="https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.9.0/swagger-ui.css",
     )
 
 # 动态获取模型路径并加载
@@ -28,9 +32,10 @@ except Exception as e:
     model = None
     print(f"警告: 模型加载失败，请确保已运行 train.py。{e}")
 
+# 【修改这里】把根路径 "/" 改为返回我们刚才写的 HTML 页面
 @app.get("/")
 def read_root():
-    return {"message": "欢迎使用天气预测 API，请访问 /docs 查看文档"}
+    return FileResponse("app/static/index.html")
 
 @app.post("/predict")
 def predict_rain(features: WeatherFeatures):
@@ -40,5 +45,5 @@ def predict_rain(features: WeatherFeatures):
     prediction = int(model.predict(input_data)[0])
     return {
         "prediction": prediction,
-        "description": "明天会下雨" if prediction == 1 else "明天不会下雨"
+        "description": "明天会下雨 ☔" if prediction == 1 else "明天不会下雨 ☀️"
     }
