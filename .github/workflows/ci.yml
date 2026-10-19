@@ -7,9 +7,11 @@ on:
     branches: [ main, dev, staging ]
 
 jobs:
-  test-and-build:
+  # ==========================================
+  # 阶段 1：CI (持续集成) - PR 触发
+  # ==========================================
+  test-lint-build:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -23,12 +25,60 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest httpx
+        pip install pytest httpx ruff  # 额外安装 ruff 用于代码检查
+
+    - name: Run Linting/Static Analysis
+      run: |
+        ruff check .  # 老师要求的代码格式化和静态分析
 
     - name: Run tests with pytest
       run: |
         pytest tests/ -v
 
-    - name: Build Docker image
+    - name: Build Docker image (Verification)
       run: |
         docker build -t rain-predictor:test .
+
+  # ==========================================
+  # 阶段 2：CD (Staging) - 合并到 staging 触发
+  # ==========================================
+  deploy-staging:
+    needs: test-lint-build
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create Staging .env file
+      # 完全按照 PDF 要求：使用针对 staging 的 secrets 创建 .env
+      run: |
+        echo "ENVIRONMENT=staging" > .env
+        echo "DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}" >> .env
+        echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> .env
+
+    - name: Build Staging Docker Image
+      run: |
+        docker build -t rain-predictor:staging .
+
+  # ==========================================
+  # 阶段 3：CD (Production) - 合并到 main 触发
+  # ==========================================
+  deploy-production:
+    needs: test-lint-build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Create Production .env file
+      # 完全按照 PDF 要求：使用针对生产环境的 secrets 创建 .env
+      run: |
+        echo "ENVIRONMENT=production" > .env
+        echo "DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> .env
+        echo "API_KEY=${{ secrets.PROD_API_KEY }}" >> .env
+
+    - name: Build Production Docker Image
+      run: |
+        docker build -t rain-predictor:production .
