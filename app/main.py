@@ -46,4 +46,4 @@ def predict_rain(features: WeatherFeatures):
     return {
         "prediction": prediction,
         "description": "明天会下雨 ☔" if prediction == 1 else "明天不会下雨 ☀️"
-    }
+    }   
