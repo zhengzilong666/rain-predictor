@@ -1,6 +1,7 @@
-import pandas as pd
-import numpy as np
 import os
+
+import numpy as np
+import pandas as pd
 
 os.makedirs("data", exist_ok=True)
 np.random.seed(42)  # 保证每次生成的数据一样

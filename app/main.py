@@ -1,11 +1,13 @@
-from fastapi import FastAPI, HTTPException
-from app.schemas import WeatherFeatures
-from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.staticfiles import StaticFiles
-import joblib
 import os
+
+import joblib
 import pandas as pd
+from fastapi import FastAPI, HTTPException
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+
+from app.schemas import WeatherFeatures
 
 app = FastAPI(title="Rain Prediction API")
 
@@ -27,9 +29,9 @@ MODEL_PATH = os.path.join(BASE_DIR, "ml", "registry", "current_model.pkl")
 
 try:
     model = joblib.load(MODEL_PATH)
-except Exception as e:
+except Exception: # noqa: BLE001
     model = None
-    print(f"警告: 模型加载失败，请确保已运行 train.py。{e}")
+    print("警告: 模型加载失败，请确保已运行 train.py。")
 
 
 @app.get("/")

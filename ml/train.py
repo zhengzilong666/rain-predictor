@@ -1,11 +1,12 @@
-import pandas as pd
+import os
+
+import joblib
 import mlflow
 import mlflow.sklearn
-from sklearn.model_selection import train_test_split
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score, accuracy_score
-import joblib
-import os
+from sklearn.metrics import accuracy_score, f1_score
+from sklearn.model_selection import train_test_split
 
 # 1. 设置 MLflow 实验名
 mlflow.set_experiment("Rain_Prediction_Experiments")
