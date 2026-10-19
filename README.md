@@ -10,7 +10,19 @@
 - **容器化**: Docker
 - **CI/CD**: GitHub Actions
 
-## 分支触发流程
-- **Pull Request**: 触发自动化测试和 Docker 构建检查。
-- **Push to main**: 触发生产环境的 CI/CD 流水线。
-更新于答辩前
+## 代码流转与 CI/CD 流水线说明
+
+本项目的开发与交付流程严格遵循标准的 DevOps 规范，代码的生命周期流转如下：
+
+1. **提交 (Commit)**：开发者在 `feature/xxx` 分支进行代码开发，并提交至本地 Git。
+2. **构建与测试 (Build & Test - CI)**：向 `dev` 或 `staging` 分支发起 Pull Request 时，GitHub Actions 会自动触发 **CI Pipeline**（`.github/workflows/ci.yml`）。
+   - 运行 `ruff` 进行静态代码检查。
+   - 运行 `pytest` 执行全部边界条件测试。
+   - 运行 `docker build` 验证镜像是否可以成功构建。
+3. **预发环境 (Staging - CD)**：当代码通过 PR 合并至 `staging` 分支时，流水线会使用 GitHub Secrets 中针对 staging 的环境变量生成 `.env` 文件，并构建带有 `staging` 标签的 Docker 镜像。
+4. **生产环境 (Production - CD)**：当 `staging` 验证通过，合并至 `main` 主干时，流水线会自动读取生产环境的 Secrets 生成 `.env`，并构建最终的 `production` Docker 镜像。
+
+### 分支触发规则
+- **Pull Request (向 dev/staging/main 发起)**：触发 `test-lint-build` 检查。
+- **Push to `staging`**：触发 `test-lint-build` + `deploy-staging`。
+- **Push to `main`**：触发 `test-lint-build` + `deploy-production`。
