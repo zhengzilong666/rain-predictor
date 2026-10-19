@@ -19,13 +19,18 @@ def train_model(data_path, n_estimators, max_depth, run_name):
     # 加载数据
     df = pd.read_csv(full_path)
 
-    # 【新增修复代码】检查如果有文本列，统一转换为数字，防止模型报错
+    # 检查如果有文本列，统一转换为数字，防止模型报错
     if df['WindGustDir'].dtype == 'object':
         df['WindGustDir'] = df['WindGustDir'].map({'N': 0, 'S': 1, 'E': 2, 'W': 3, 'NE': 4, 'SW': 5}).fillna(0)
     if df['RainTomorrow'].dtype == 'object':
         df['RainTomorrow'] = df['RainTomorrow'].map({'No': 0, 'Yes': 1})
 
-    X = df.drop("RainTomorrow", axis=1)
+    # ========== 核心修改点在这里 ==========
+    # 之前是 df.drop("RainTomorrow", axis=1) 包含了所有特征
+    # 现在我们只提取真正有物理因果关联的两个特征
+    X = df[["Humidity9am", "Rainfall"]]
+    # ======================================
+
     y = df["RainTomorrow"]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)

@@ -9,7 +9,7 @@
         h2 { text-align: center; color: #333; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; color: #666; }
-        input, select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; }
         button { width: 100%; padding: 10px; background-color: #007BFF; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
         button:hover { background-color: #0056b3; }
         #result { margin-top: 20px; padding: 15px; text-align: center; border-radius: 5px; font-weight: bold; display: none; }
@@ -21,31 +21,12 @@
     <div class="container">
         <h2>🌦️ 明日降雨预测</h2>
         <div class="form-group">
-            <label>最低气温 (MinTemp):</label>
-            <input type="number" step="0.1" id="MinTemp" value="15.0">
-        </div>
-        <div class="form-group">
-            <label>最高气温 (MaxTemp):</label>
-            <input type="number" step="0.1" id="MaxTemp" value="25.0">
-        </div>
-        <div class="form-group">
-            <label>降雨量 (Rainfall):</label>
+            <label>降雨量 (Rainfall mm):</label>
             <input type="number" step="0.1" id="Rainfall" value="0.0">
         </div>
         <div class="form-group">
-            <label>早9点湿度 (Humidity9am):</label>
+            <label>早9点湿度 (Humidity9am %):</label>
             <input type="number" step="0.1" id="Humidity9am" value="60.0">
-        </div>
-        <div class="form-group">
-            <label>风向 (WindGustDir):</label>
-            <select id="WindGustDir">
-                <option value="0">N (北)</option>
-                <option value="1">S (南)</option>
-                <option value="2">E (东)</option>
-                <option value="3">W (西)</option>
-                <option value="4">NE (东北)</option>
-                <option value="5">SW (西南)</option>
-            </select>
         </div>
         <button onclick="predict()">开始预测</button>
         <div id="result"></div>
@@ -54,11 +35,8 @@
     <script>
         async function predict() {
             const data = {
-                MinTemp: parseFloat(document.getElementById('MinTemp').value),
-                MaxTemp: parseFloat(document.getElementById('MaxTemp').value),
                 Rainfall: parseFloat(document.getElementById('Rainfall').value),
-                Humidity9am: parseFloat(document.getElementById('Humidity9am').value),
-                WindGustDir: parseInt(document.getElementById('WindGustDir').value)
+                Humidity9am: parseFloat(document.getElementById('Humidity9am').value)
             };
 
             const resultDiv = document.getElementById('result');
@@ -67,7 +45,6 @@
             resultDiv.innerHTML = '预测中...';
 
             try {
-                // 调用我们后端的 /predict 接口
                 const response = await fetch('/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -77,7 +54,6 @@
                 const result = await response.json();
                 if (response.ok) {
                     resultDiv.innerText = result.description;
-                    // 根据结果添加不同的颜色样式
                     resultDiv.className = result.prediction === 1 ? 'rain' : 'no-rain';
                 } else {
                     resultDiv.innerText = '预测失败：参数格式错误';
