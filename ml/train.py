@@ -1,13 +1,14 @@
-import pandas as pd
-import mlflow
-import mlflow.sklearn
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import f1_score, accuracy_score
-import joblib
 import os
 import subprocess
+
+import joblib
+import mlflow
+import mlflow.sklearn
+import pandas as pd
 import yaml
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, f1_score
+from sklearn.model_selection import train_test_split
 
 # 1. 设置 MLflow 实验名
 mlflow.set_experiment("Rain_Prediction_Experiments")
@@ -20,7 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 def get_git_sha():
     try:
         return subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('ascii').strip()
-    except Exception:
+    except Exception:  # noqa: BLE001
         return "unknown"
 
 
